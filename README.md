@@ -51,7 +51,7 @@ Contract:
 }
 ```
 
-Columns are required by default; set `"required": false` for an optional field. Supported types are `string`, `integer`, `decimal`, and `date` (`YYYY-MM-DD`). Numeric bounds are inclusive. The composite key is checked only when all its components have valid nonmissing values. Unknown contract keys fail early so a misspelled rule cannot silently weaken a check.
+Columns are required by default; set `"required": false` for an optional field. Supported types are `string`, `integer`, `decimal`, and `date` (`YYYY-MM-DD`). Numeric bounds are inclusive. The composite key is checked only when all its components have type-valid, nonmissing values. Unknown contract keys fail early so a misspelled rule cannot silently weaken a check.
 
 JSON arrays work directly. For an API-style envelope such as `{"items": [...]}`, add `--records-key items`. Numeric JSON identifiers fail a string contract instead of silently losing leading zeroes. UTF-8 BOM files are supported; duplicate headers, duplicate JSON keys, ragged CSV rows, and nonstandard JSON numbers are rejected.
 
