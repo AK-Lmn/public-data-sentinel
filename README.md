@@ -75,7 +75,7 @@ Run tests:
 python -m unittest discover -s tests -v
 ```
 
-A [GitHub Actions configuration](ci/github-actions.yml) is included for Windows and Linux with Python 3.10, 3.12, and 3.14. Copy it to `.github/workflows/tests.yml` to enable the matrix. Source-only execution is also possible by adding `src` to `PYTHONPATH` and running `python -m public_data_sentinel.cli`.
+GitHub Actions tests Windows and Linux with Python 3.10, 3.12, and 3.14. See the [workflow](.github/workflows/tests.yml). Source-only execution is also possible by adding `src` to `PYTHONPATH` and running `python -m public_data_sentinel.cli`.
 
 ## Scope and limitations
 
