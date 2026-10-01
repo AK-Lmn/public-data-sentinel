@@ -1,0 +1,93 @@
+# Public Data Sentinel
+
+Catch malformed public-data extracts before they enter a spreadsheet, report, or monitoring workflow.
+
+A small Python CLI validates CSV and JSON files against an explicit data contract. It reports the record and field that failed, preserves text identifiers such as `00123`, and produces JSON or Markdown suitable for a review or CI job.
+
+**For:** analysts, small research teams, and business operators working with recurring public-data downloads.
+
+## Install
+
+Python 3.10 or newer. The application has no runtime dependencies.
+
+```sh
+python -m venv .venv
+# macOS/Linux: source .venv/bin/activate
+# Windows PowerShell: .venv\Scripts\Activate.ps1
+python -m pip install -e .
+```
+
+## Try a complete workflow
+
+```sh
+data-sentinel examples/valid.csv --contract examples/contract.json
+data-sentinel examples/invalid.csv --contract examples/contract.json --format markdown --output report.md
+```
+
+The first command returns exit code **0** with three records checked and no issues. The second returns **1** and writes five issues: a negative measurement, a nonfinite number, an unsupported quality value, a duplicate station/date key, and an impossible calendar date.
+
+See the committed [passing JSON report](examples/valid-report.json) and [failing Markdown report](examples/invalid-report.md). These examples are synthetic fixtures, not observations from an institution.
+
+Input example:
+
+```csv
+station_id,date,rainfall_mm,quality
+00123,2026-09-01,12.5,measured
+00123,2026-09-02,0,estimated
+```
+
+Contract:
+
+```json
+{
+  "columns": {
+    "station_id": {"type": "string"},
+    "date": {"type": "date"},
+    "rainfall_mm": {"type": "decimal", "minimum": "0"},
+    "quality": {"type": "string", "enum": ["measured", "estimated"]}
+  },
+  "unique_by": ["station_id", "date"],
+  "allow_extra_columns": false
+}
+```
+
+Columns are required by default; set `"required": false` for an optional field. Supported types are `string`, `integer`, `decimal`, and `date` (`YYYY-MM-DD`). Numeric bounds are inclusive. The composite key is checked only when all its components have valid nonmissing values. Unknown contract keys fail early so a misspelled rule cannot silently weaken a check.
+
+JSON arrays work directly. For an API-style envelope such as `{"items": [...]}`, add `--records-key items`. Numeric JSON identifiers fail a string contract instead of silently losing leading zeroes. UTF-8 BOM files are supported; duplicate headers, duplicate JSON keys, ragged CSV rows, and nonstandard JSON numbers are rejected.
+
+## Automation and Python use
+
+Exit statuses: **0** = passed, **1** = data violations, **2** = unreadable input, malformed file, or invalid contract. Output cannot overwrite the input or contract.
+
+```python
+from public_data_sentinel import validate
+
+report = validate(
+    [{"station_id": "00123", "count": "2"}],
+    {"columns": {"station_id": {"type": "string"}, "count": {"type": "integer", "minimum": 0}}},
+)
+assert report["valid"]
+```
+
+Run tests:
+
+```sh
+python -m unittest discover -s tests -v
+```
+
+A [GitHub Actions configuration](ci/github-actions.yml) is included for Windows and Linux with Python 3.10, 3.12, and 3.14. Copy it to `.github/workflows/tests.yml` to enable the matrix. Source-only execution is also possible by adding `src` to `PYTHONPATH` and running `python -m public_data_sentinel.cli`.
+
+## Scope and limitations
+
+- This checks the contract you provide. Passing does not establish factual accuracy, provenance, publication permission, or scientific validity.
+- The contract is deliberately small; it is not JSON Schema and does not support nested field paths, joins, timezone conversions, or arbitrary business formulas.
+- Files are read into memory. Use a streaming validator for very large datasets.
+- Decimal values are checked without binary floating-point rounding. The tool reports errors and does not repair or overwrite the source data.
+
+## Development
+
+Developed with AI assistance. Behavior is documented with executable examples and tests.
+
+한국어: 공공 데이터 CSV·JSON을 분석이나 보고서에 넣기 전에 필수 값, 숫자 범위, 날짜, 중복 키를 점검하는 도구입니다. 기관 코드의 앞자리 0을 보존하고 오류 위치를 표시합니다.
+
+MIT license.

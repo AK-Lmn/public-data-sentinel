@@ -1,0 +1,10 @@
+{
+  "columns": {
+    "station_id": {"type": "string"},
+    "date": {"type": "date"},
+    "rainfall_mm": {"type": "decimal", "minimum": "0", "maximum": "1500"},
+    "quality": {"type": "string", "enum": ["measured", "estimated"]}
+  },
+  "unique_by": ["station_id", "date"],
+  "allow_extra_columns": false
+}

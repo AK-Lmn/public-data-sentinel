@@ -1,0 +1,4 @@
+station_id,date,rainfall_mm,quality
+00123,2026-09-01,-2,measured
+00123,2026-09-01,NaN,guessed
+00456,2026-02-30,8.75,measured
