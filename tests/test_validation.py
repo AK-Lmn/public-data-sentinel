@@ -117,6 +117,13 @@ class ValidationTests(unittest.TestCase):
                 with self.assertRaises(ContractError):
                     check_contract(contract)
 
+    def test_contract_container_type_values_fail_early(self):
+        for kind in [[], {}]:
+            with self.subTest(kind=kind):
+                contract = {"columns": {"id": {"type": kind}}}
+                with self.assertRaisesRegex(ContractError, "id: type must be string, integer, decimal or date"):
+                    check_contract(contract)
+
     def test_json_duplicates_and_nonstandard_constants_fail(self):
         for value in ['{"id": 1, "id": 2}', '[NaN]', '[Infinity]']:
             with self.assertRaises(ValueError):
@@ -179,6 +186,19 @@ class CLITests(unittest.TestCase):
         process = subprocess.run(command, env=environment, capture_output=True, text=True, encoding="utf-8")
         self.assertEqual(process.returncode, 0, process.stderr)
         self.assertEqual(json.loads(process.stdout)["records_checked"], 3)
+
+    def test_cli_contract_container_type_values_exit_two(self):
+        environment = dict(os.environ, PYTHONPATH=str(ROOT / "src"))
+        with tempfile.TemporaryDirectory() as temp:
+            contract_file = pathlib.Path(temp) / "contract.json"
+            for kind in [[], {}]:
+                with self.subTest(kind=kind):
+                    contract_file.write_text(json.dumps({"columns": {"id": {"type": kind}}}))
+                    command = [sys.executable, "-m", "public_data_sentinel.cli", str(ROOT / "examples/valid.csv"), "--contract", str(contract_file)]
+                    process = subprocess.run(command, env=environment, capture_output=True, text=True, encoding="utf-8")
+                    self.assertEqual(process.returncode, 2, process.stderr)
+                    self.assertEqual(process.stdout, "")
+                    self.assertEqual(process.stderr, "data-sentinel: id: type must be string, integer, decimal or date\n")
 
 
 if __name__ == "__main__":

@@ -40,7 +40,7 @@ def check_contract(contract):
         if extra:
             raise ContractError(f"{name}: unknown rules: {', '.join(sorted(extra))}")
         kind = rules.get("type")
-        if kind not in {"string", "integer", "decimal", "date"}:
+        if not isinstance(kind, str) or kind not in {"string", "integer", "decimal", "date"}:
             raise ContractError(f"{name}: type must be string, integer, decimal or date")
         if not isinstance(rules.get("required", True), bool):
             raise ContractError(f"{name}: required must be boolean")
