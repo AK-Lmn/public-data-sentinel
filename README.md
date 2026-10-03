@@ -1,5 +1,7 @@
 # Public Data Sentinel
 
+[![Tests](https://github.com/qorud02/public-data-sentinel/actions/workflows/tests.yml/badge.svg)](https://github.com/qorud02/public-data-sentinel/actions/workflows/tests.yml)
+
 Catch malformed public-data extracts before they enter a spreadsheet, report, or monitoring workflow.
 
 A small Python CLI validates CSV and JSON files against an explicit data contract. It reports the record and field that failed, preserves text identifiers such as `00123`, and produces JSON or Markdown suitable for a review or CI job.
@@ -11,20 +13,31 @@ A small Python CLI validates CSV and JSON files against an explicit data contrac
 Python 3.10 or newer. The application has no runtime dependencies.
 
 ```sh
-python -m venv .venv
-# macOS/Linux: source .venv/bin/activate
-# Windows PowerShell: .venv\Scripts\Activate.ps1
-python -m pip install -e .
+git clone https://github.com/qorud02/public-data-sentinel.git
+cd public-data-sentinel
 ```
 
-## Try a complete workflow
+Windows PowerShell:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e .
+.\.venv\Scripts\python.exe -m public_data_sentinel.cli examples/valid.csv --contract examples/contract.json
+.\.venv\Scripts\python.exe -m public_data_sentinel.cli examples/invalid.csv --contract examples/contract.json --format markdown --output report.md
+```
+
+macOS / Linux:
 
 ```sh
-data-sentinel examples/valid.csv --contract examples/contract.json
-data-sentinel examples/invalid.csv --contract examples/contract.json --format markdown --output report.md
+python3 -m venv .venv
+.venv/bin/python -m pip install -e .
+.venv/bin/python -m public_data_sentinel.cli examples/valid.csv --contract examples/contract.json
+.venv/bin/python -m public_data_sentinel.cli examples/invalid.csv --contract examples/contract.json --format markdown --output report.md
 ```
 
-The first command returns exit code **0** with three records checked and no issues. The second returns **1** and writes five issues: a negative measurement, a nonfinite number, an unsupported quality value, a duplicate station/date key, and an impossible calendar date.
+These commands use the virtual environment directly; activation is optional.
+
+The valid-data command returns exit code **0** with three records checked and no issues. The invalid-data command returns **1** and writes five issues: a negative measurement, a nonfinite number, an unsupported quality value, a duplicate station/date key, and an impossible calendar date.
 
 See the committed [passing JSON report](examples/valid-report.json) and [failing Markdown report](examples/invalid-report.md). These examples are synthetic fixtures, not observations from an institution.
 
@@ -69,11 +82,7 @@ report = validate(
 assert report["valid"]
 ```
 
-Run tests:
-
-```sh
-python -m unittest discover -s tests -v
-```
+For test commands and source-only execution, see the [contributor guide](CONTRIBUTING.md).
 
 GitHub Actions tests Windows and Linux with Python 3.10, 3.12, and 3.14. See the [workflow](.github/workflows/tests.yml). Source-only execution is also possible by adding `src` to `PYTHONPATH` and running `python -m public_data_sentinel.cli`.
 
@@ -85,6 +94,8 @@ GitHub Actions tests Windows and Linux with Python 3.10, 3.12, and 3.14. See the
 - Decimal values are checked without binary floating-point rounding. The tool reports errors and does not repair or overwrite the source data.
 
 ## Contributing
+
+A first contribution: [add TSV input](https://github.com/qorud02/public-data-sentinel/issues/2). The issue describes compatibility requirements and regression cases.
 
 Start with the [contributor guide](CONTRIBUTING.md) for local setup, reproducible fixtures, and focused draft PRs. Check [open issues](https://github.com/qorud02/public-data-sentinel/issues) and [existing PRs](https://github.com/qorud02/public-data-sentinel/pulls) before starting.
 
