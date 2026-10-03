@@ -55,6 +55,13 @@ def markdown(report):
     return "\n".join(lines) + "\n"
 
 
+def _resolve_path(path):
+    try:
+        return path.resolve()
+    except RuntimeError as exc:
+        raise ValueError(f"Cannot resolve path {path}: {exc}") from exc
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Check a CSV or JSON extract against an explicit data contract.")
     parser.add_argument("input", help="UTF-8 CSV or JSON file")
@@ -64,10 +71,13 @@ def main(argv=None):
     parser.add_argument("--output", help="Write the report to this path")
     args = parser.parse_args(argv)
     try:
-        if args.output and pathlib.Path(args.output).resolve() in {
-            pathlib.Path(args.input).resolve(), pathlib.Path(args.contract).resolve()
-        }:
-            raise ValueError("Report output must not overwrite the input or contract")
+        if args.output:
+            output_path = pathlib.Path(args.output)
+            for source_path in (pathlib.Path(args.input), pathlib.Path(args.contract)):
+                if _resolve_path(output_path) == _resolve_path(source_path) or (
+                    output_path.exists() and output_path.samefile(source_path)
+                ):
+                    raise ValueError("Report output must not overwrite the input or contract")
         contract = load_json(pathlib.Path(args.contract).read_text(encoding="utf-8-sig"))
         records, headers = read_records(args.input, args.records_key)
         report = validate(records, contract, headers=headers)

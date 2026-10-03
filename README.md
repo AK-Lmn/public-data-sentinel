@@ -57,7 +57,7 @@ JSON arrays work directly. For an API-style envelope such as `{"items": [...]}`,
 
 ## Automation and Python use
 
-Exit statuses: **0** = passed, **1** = data violations, **2** = unreadable input, malformed file, or invalid contract. Output cannot overwrite the input or contract.
+Exit statuses: **0** = passed, **1** = data violations, **2** = unreadable input, malformed file, or invalid contract. Output cannot overwrite the input or contract, including resolved path aliases and existing hard links to either file.
 
 ```python
 from public_data_sentinel import validate
