@@ -64,10 +64,13 @@ def main(argv=None):
     parser.add_argument("--output", help="Write the report to this path")
     args = parser.parse_args(argv)
     try:
-        if args.output and pathlib.Path(args.output).resolve() in {
-            pathlib.Path(args.input).resolve(), pathlib.Path(args.contract).resolve()
-        }:
-            raise ValueError("Report output must not overwrite the input or contract")
+        if args.output:
+            output_path = pathlib.Path(args.output)
+            for source_path in (pathlib.Path(args.input), pathlib.Path(args.contract)):
+                if output_path.resolve() == source_path.resolve() or (
+                    output_path.exists() and output_path.samefile(source_path)
+                ):
+                    raise ValueError("Report output must not overwrite the input or contract")
         contract = load_json(pathlib.Path(args.contract).read_text(encoding="utf-8-sig"))
         records, headers = read_records(args.input, args.records_key)
         report = validate(records, contract, headers=headers)

@@ -57,7 +57,7 @@ JSON arrays work directly. For an API-style envelope such as `{"items": [...]}`,
 
 ## Automation and Python use
 
-Exit statuses: **0** = passed, **1** = data violations, **2** = unreadable input, malformed file, or invalid contract. Output cannot overwrite the input or contract.
+Exit statuses: **0** = passed, **1** = data violations, **2** = unreadable input, malformed file, or invalid contract. Output cannot overwrite the input or contract, including resolved path aliases and existing hard links to either file.
 
 ```python
 from public_data_sentinel import validate
@@ -88,6 +88,6 @@ GitHub Actions tests Windows and Linux with Python 3.10, 3.12, and 3.14. See the
 
 Developed with AI assistance. Behavior is documented with executable examples and tests.
 
-한국어: 공공 데이터 CSV·JSON을 분석이나 보고서에 넣기 전에 필수 값, 숫자 범위, 날짜, 중복 키를 점검하는 도구입니다. 기관 코드의 앞자리 0을 보존하고 오류 위치를 표시합니다.
+�ѱ���: ���� ������ CSV��JSON�� �м��̳� �������� �ֱ� ���� �ʼ� ��, ���� ����, ��¥, �ߺ� Ű�� �����ϴ� �����Դϴ�. ��� �ڵ��� ���ڸ� 0�� �����ϰ� ���� ��ġ�� ǥ���մϴ�.
 
 MIT license.
