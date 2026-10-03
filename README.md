@@ -84,6 +84,12 @@ GitHub Actions tests Windows and Linux with Python 3.10, 3.12, and 3.14. See the
 - Files are read into memory. Use a streaming validator for very large datasets.
 - Decimal values are checked without binary floating-point rounding. The tool reports errors and does not repair or overwrite the source data.
 
+## Contributing
+
+Start with the [contributor guide](CONTRIBUTING.md) for local setup, reproducible fixtures, and focused draft PRs. Check [open issues](https://github.com/qorud02/public-data-sentinel/issues) and [existing PRs](https://github.com/qorud02/public-data-sentinel/pulls) before starting.
+
+한국어: [기여 안내](CONTRIBUTING.md)에서 실행·검증 방법을 확인하고, 열린 이슈와 PR에서 작업 범위를 조율해 주세요.
+
 ## Development
 
 Developed with AI assistance. Behavior is documented with executable examples and tests.
