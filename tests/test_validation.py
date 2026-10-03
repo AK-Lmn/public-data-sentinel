@@ -9,6 +9,11 @@ import tempfile
 import unittest
 from decimal import Decimal
 
+import html
+import re
+
+from markdown_it import MarkdownIt
+
 from public_data_sentinel.cli import main, markdown, read_records
 from public_data_sentinel.validation import ContractError, check_contract, load_json, validate
 
@@ -134,6 +139,13 @@ class ValidationTests(unittest.TestCase):
         text = markdown({"valid": False, "records_checked": 1, "error_count": 1, "issues": [{"record": 1, "field": "<b>|\nx", "code": "type", "message": "hello\rworld"}]})
         self.assertIn("&lt;b&gt;&#124; x", text)
         self.assertNotIn("<b>", text)
+        renderer = MarkdownIt("commonmark").enable("table")
+        rendered = renderer.render(text)
+        self.assertNotIn("<b>", rendered)
+        rows = re.findall(r"<tr>(.*?)</tr>", rendered, re.DOTALL)
+        self.assertGreaterEqual(len(rows), 2)
+        cells = [html.unescape(c.strip()) for c in re.findall(r"<td>(.*?)</td>", rows[1], re.DOTALL)]
+        self.assertEqual(cells, ["1", "<b>| x", "type", "hello world"])
 
     def test_markdown_escapes_formatting_characters_in_field_and_detail(self):
         cases = [
@@ -162,16 +174,20 @@ class ValidationTests(unittest.TestCase):
             with self.subTest(case=raw):
                 self.assertIn(f"| {escaped} |", text)
 
-        try:
-            from markdown_it import MarkdownIt
-            rendered = MarkdownIt("commonmark").enable("table").render(text)
-            self.assertNotIn("<a ", rendered)
-            self.assertNotIn("<strong>", rendered)
-            self.assertNotIn("<code>", rendered)
-            self.assertNotIn("<em>", rendered)
-            self.assertNotIn("<b>", rendered)
-        except ImportError:
-            pass
+        renderer = MarkdownIt("commonmark").enable("table")
+        rendered = renderer.render(text)
+        self.assertNotIn("<a ", rendered)
+        self.assertNotIn("<strong>", rendered)
+        self.assertNotIn("<code>", rendered)
+        self.assertNotIn("<em>", rendered)
+        self.assertNotIn("<b>", rendered)
+
+        rows = re.findall(r"<tr>(.*?)</tr>", rendered, re.DOTALL)
+        self.assertEqual(len(rows), len(cases) + 1)
+        for idx, (raw, _) in enumerate(cases):
+            with self.subTest(rendered_cells_match=raw):
+                cells = [html.unescape(c.strip()) for c in re.findall(r"<td>(.*?)</td>", rows[idx + 1], re.DOTALL)]
+                self.assertEqual(cells, [str(idx + 1), raw, "type", f"invalid {raw}"])
 
 
 class CLITests(unittest.TestCase):
@@ -280,17 +296,21 @@ class CLITests(unittest.TestCase):
             for _, escaped in cases:
                 self.assertIn(escaped, csv_md)
 
-            try:
-                from markdown_it import MarkdownIt
-                renderer = MarkdownIt("commonmark").enable("table")
-                for md_text in (json_md, csv_md):
-                    rendered = renderer.render(md_text)
-                    self.assertNotIn("<a ", rendered)
-                    self.assertNotIn("<strong>", rendered)
-                    self.assertNotIn("<code>", rendered)
-                    self.assertNotIn("<em>", rendered)
-            except ImportError:
-                pass
+            renderer = MarkdownIt("commonmark").enable("table")
+            for md_text in (json_md, csv_md):
+                rendered = renderer.render(md_text)
+                self.assertNotIn("<a ", rendered)
+                self.assertNotIn("<strong>", rendered)
+                self.assertNotIn("<code>", rendered)
+                self.assertNotIn("<em>", rendered)
+                self.assertNotIn("<b>", rendered)
+
+                rows = re.findall(r"<tr>(.*?)</tr>", rendered, re.DOTALL)
+                self.assertEqual(len(rows), len(names) + 1)
+                for idx, name in enumerate(names):
+                    cells = [html.unescape(c.strip()) for c in re.findall(r"<td>(.*?)</td>", rows[idx + 1], re.DOTALL)]
+                    self.assertEqual(cells[1], name)
+                    self.assertEqual(cells[3], "Expected a decimal number")
 
 
 if __name__ == "__main__":
